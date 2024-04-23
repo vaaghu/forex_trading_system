@@ -1,13 +1,14 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Controller, Get, Post, Body } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
+import { TopupDto } from './accounts.dto';
 
 @Controller('accounts')
 export class AccountsController {
   constructor(private readonly accountsService: AccountsService) {}
 
   @Post('topup')
-  topup() {
-    return 'topup';
+  async topup(@Body() body: TopupDto) {
+    return await this.accountsService.topup(body.currency, body.amount);
   }
 
   @Get('balance')
