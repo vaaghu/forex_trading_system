@@ -1,7 +1,19 @@
-import { IsNumber, IsString, Min } from 'class-validator';
+import {
+  IsAlpha,
+  IsNumber,
+  IsString,
+  IsUppercase,
+  MaxLength,
+  Min,
+  MinLength,
+} from 'class-validator';
 
 export class TopupDto {
   @IsString()
+  @MinLength(3)
+  @MaxLength(4)
+  @IsAlpha()
+  @IsUppercase()
   currency: string;
 
   @IsNumber()
