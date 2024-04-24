@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
-import { TopupDto } from './accounts.dto';
+import { TopupDto, BalanceReturnDto } from './accounts.dto';
 
 @Controller('accounts')
 export class AccountsController {
@@ -12,7 +12,7 @@ export class AccountsController {
   }
 
   @Get('balance')
-  async balance() {
+  async balance(): Promise<BalanceReturnDto> {
     return await this.accountsService.balance();
   }
 }

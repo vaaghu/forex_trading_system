@@ -35,7 +35,7 @@ export class AccountsService {
 
     return;
   }
-  async balance() {
+  async balance(): Promise<BalanceReturnDto> {
     const result: BalanceReturnDto = await prisma.users
       .findFirst({
         select: { user_currency_balances: true },
