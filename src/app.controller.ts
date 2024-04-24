@@ -7,12 +7,14 @@ import {
   FxConversionResponse,
 } from './app.dto';
 import { ApiAcceptedResponse } from '@nestjs/swagger';
+import { Public } from './auth/public.decorator';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
+  @Public()
   @ApiAcceptedResponse({
     status: 200,
     description: 'to check',

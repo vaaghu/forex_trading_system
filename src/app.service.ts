@@ -10,7 +10,6 @@ import {
 import { UUID, randomUUID } from 'crypto';
 import { env } from 'process';
 import { PrismaClient } from '@prisma/client';
-
 const prisma = new PrismaClient();
 const rates: { [key: string]: any } = {};
 const EXPIRE_IN = 1000 * 60 * 10;
@@ -27,6 +26,7 @@ const quote: {
 @Injectable()
 export class AppService {
   constructor(private http: HttpService) {}
+
   getHello(): string {
     return "Hello I'm Vaaghu";
   }
@@ -39,8 +39,6 @@ export class AppService {
     const expiry_at = new Date().getTime() + EXPIRE_IN;
     const rate = await this.getExchangeRate(fromCurrency, toCurrency);
     quote[quoteId] = { quoteId, expiry_at, fromCurrency, toCurrency, rate };
-
-    console.log(quote);
     return { quoteId, expiry_at };
   }
 
@@ -76,26 +74,25 @@ export class AppService {
 
     //after checks
     const convertedAmount = amount * rateObj.rate;
-    console.log(user_id);
-    const result = await prisma.user_currency_balances.upsert({
-      where: { user_id_symbole: { user_id, symbol: toCurrency } },
-      create: {
-        user_id,
-        symbol: toCurrency,
-        amount: convertedAmount,
-      },
-      update: {
-        amount: { increment: convertedAmount },
-      },
+    await prisma.$transaction(async () => {
+      await prisma.user_currency_balances.upsert({
+        where: { user_id_symbole: { user_id, symbol: toCurrency } },
+        create: {
+          user_id,
+          symbol: toCurrency,
+          amount: convertedAmount,
+        },
+        update: {
+          amount: { increment: convertedAmount },
+        },
+      });
+      await prisma.user_currency_balances.update({
+        where: { user_id_symbole: { user_id, symbol: fromCurrency } },
+        data: {
+          amount: { decrement: amount },
+        },
+      });
     });
-    console.log(result);
-    await prisma.user_currency_balances.update({
-      where: { user_id_symbole: { user_id, symbol: fromCurrency } },
-      data: {
-        amount: { decrement: amount },
-      },
-    });
-
     return { convertedAmount, currency: toCurrency };
   }
 
