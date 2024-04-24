@@ -17,9 +17,11 @@ import {
 import { UUID, randomUUID } from 'crypto';
 import { env } from 'process';
 import { PrismaClient } from '@prisma/client';
+
 const prisma = new PrismaClient();
 const rates: { [key: string]: any } = {};
 const EXPIRE_IN = 1000 * 60 * 10;
+const RATE_EXPIRE_IN = 1000 * 30;
 const quote: {
   [key: UUID]: {
     quoteId: FxRatesResponse['quoteId'];
@@ -29,6 +31,10 @@ const quote: {
     rate: number;
   };
 } = {};
+
+const URL = (fromCurrency: string, toCurrency: string) =>
+  `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${fromCurrency}&to_currency=${toCurrency}&apikey=${env['API_KEY']}`;
+
 @Injectable()
 export class AppService {
   constructor(
@@ -114,8 +120,7 @@ export class AppService {
     toCurrency: string,
   ): Promise<number> {
     const rateKeyName = '5. Exchange Rate';
-    const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${fromCurrency}&to_currency=${toCurrency}&apikey=${env['API_KEY']}`;
-    console.log(url);
+
     try {
       if (new Date().getTime() < rates[fromCurrency][toCurrency]?.expires_at) {
         return rates[fromCurrency][toCurrency][rateKeyName];
@@ -125,7 +130,7 @@ export class AppService {
     } catch (error) {
       if (error instanceof TypeError) {
         let { data } = await firstValueFrom(
-          this.http.get(url).pipe(
+          this.http.get(URL(fromCurrency, toCurrency)).pipe(
             catchError((error) => {
               console.error(error);
               throw 'An error happened!';
@@ -152,7 +157,7 @@ export class AppService {
         }
         rates[fromCurrency][toCurrency] = {
           ...data,
-          expires_at: new Date().getTime() + 30 * 1000,
+          expires_at: new Date().getTime() + RATE_EXPIRE_IN,
         };
 
         if (!data[rateKeyName]) {
