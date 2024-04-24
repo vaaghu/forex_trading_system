@@ -1,12 +1,19 @@
 import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { catchError, firstValueFrom } from 'rxjs';
-import { FxRatesBody, FxRatesResponse } from './app.dto';
+import {
+  FxConversion,
+  FxRatesBody,
+  FxRatesResponse,
+  FxConversionResponse,
+} from './app.dto';
 import { UUID, randomUUID } from 'crypto';
 import { env } from 'process';
+import { PrismaClient } from '@prisma/client';
 
+const prisma = new PrismaClient();
 const rates: { [key: string]: any } = {};
-const EXPIRE_IN = 1000 * 60;
+const EXPIRE_IN = 1000 * 60 * 10;
 const quote: {
   [key: UUID]: {
     quoteId: FxRatesResponse['quoteId'];
@@ -37,8 +44,59 @@ export class AppService {
     return { quoteId, expiry_at };
   }
 
-  async fxConversion() {
-    return 'fxConversion';
+  async fxConversion(
+    quoteId: FxConversion['quoteId'],
+    fromCurrency: FxConversion['fromCurrency'],
+    toCurrency: FxConversion['toCurrency'],
+    amount: FxConversion['amount'],
+  ): Promise<FxConversionResponse> {
+    const rateObj = quote[quoteId];
+    if (!rateObj) throw new BadRequestException('invalid quoteId');
+
+    if (rateObj.expiry_at < new Date().getTime())
+      throw new BadRequestException('quoteId expired');
+
+    const { id: user_id } = await prisma.users.findFirst();
+    const balance = await prisma.user_currency_balances.findUnique({
+      where: {
+        user_id_symbole: { user_id, symbol: fromCurrency },
+        symbol: fromCurrency,
+      },
+    });
+    if (
+      rateObj.fromCurrency !== fromCurrency ||
+      rateObj.toCurrency !== toCurrency
+    )
+      throw new BadRequestException('invalid quoteId');
+
+    if (!balance || balance.amount == 0)
+      throw new BadRequestException(
+        `not enough balance or zero balance in ${fromCurrency}\n current balance in ${fromCurrency} is ${balance?.amount || 0}`,
+      );
+
+    //after checks
+    const convertedAmount = amount * rateObj.rate;
+    console.log(user_id);
+    const result = await prisma.user_currency_balances.upsert({
+      where: { user_id_symbole: { user_id, symbol: toCurrency } },
+      create: {
+        user_id,
+        symbol: toCurrency,
+        amount: convertedAmount,
+      },
+      update: {
+        amount: { increment: convertedAmount },
+      },
+    });
+    console.log(result);
+    await prisma.user_currency_balances.update({
+      where: { user_id_symbole: { user_id, symbol: fromCurrency } },
+      data: {
+        amount: { decrement: amount },
+      },
+    });
+
+    return { convertedAmount, currency: toCurrency };
   }
 
   async getExchangeRate(

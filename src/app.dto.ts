@@ -7,6 +7,7 @@ import {
   IsUppercase,
   IsUUID,
   IsNumber,
+  Min,
 } from 'class-validator';
 import { UUID } from 'crypto';
 
@@ -35,4 +36,23 @@ export class FxRatesResponse {
 
   @IsNumber()
   expiry_at: number;
+}
+
+// { "quoteId": "12345", "fromCurrency": "USD",
+// "toCurrency": "EUR", "amount": 100 }
+export class FxConversion extends FxRatesBody {
+  @IsUUID()
+  quoteId: UUID;
+
+  @IsNumber()
+  @Min(1)
+  amount: number;
+}
+
+export class FxConversionResponse {
+  @IsNumber()
+  convertedAmount: number;
+
+  @ValidateCurrency()
+  currency: string;
 }
