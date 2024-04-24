@@ -6,22 +6,39 @@ import {
   FxRatesResponse,
   FxConversionResponse,
 } from './app.dto';
+import { ApiAcceptedResponse } from '@nestjs/swagger';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
+  @ApiAcceptedResponse({
+    status: 200,
+    type: 'string',
+    description: 'to check',
+  })
   getHello(): string {
     return this.appService.getHello();
   }
 
   @Post('fx-rates')
+  @ApiAcceptedResponse({
+    status: 200,
+    type: FxRatesResponse,
+    description: 'Successful response with FX rates.',
+  })
+  @ApiAcceptedResponse({ status: 200, type: FxRatesResponse })
   async fxRates(@Body() body: FxRatesBody): Promise<FxRatesResponse> {
     return await this.appService.fxRates(body.fromCurrency, body.toCurrency);
   }
 
   @Post('fx-conversion')
+  @ApiAcceptedResponse({
+    status: 200,
+    type: FxConversionResponse,
+    description: 'Successful response with FX conversion.',
+  })
   async fxConversion(
     @Body() body: FxConversion,
   ): Promise<FxConversionResponse> {
