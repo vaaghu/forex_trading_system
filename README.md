@@ -68,8 +68,16 @@ $ pnpm run test:cov
 
 ## Other commands
 
+interactive tables
+
 ```bash
   npx prisma studio
+```
+
+To seed the db
+
+```bash
+  npx prisma db seed
 ```
 
 ## License
