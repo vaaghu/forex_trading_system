@@ -12,7 +12,7 @@ export class AccountsController {
   }
 
   @Get('balance')
-  balance() {
-    return 'balance';
+  async balance() {
+    return await this.accountsService.balance();
   }
 }

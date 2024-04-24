@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { TopupDto } from './accounts.dto';
+import { BalanceReturnDto, TopupDto } from './accounts.dto';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -34,5 +34,19 @@ export class AccountsService {
     });
 
     return;
+  }
+  async balance() {
+    const result: BalanceReturnDto = await prisma.users
+      .findFirst({
+        select: { user_currency_balances: true },
+      })
+      .then(({ user_currency_balances }) => {
+        const balances: BalanceReturnDto['balances'] = {};
+        for (const balance of user_currency_balances) {
+          balances[balance.symbol] = balance.amount;
+        }
+        return { balances };
+      });
+    return result;
   }
 }

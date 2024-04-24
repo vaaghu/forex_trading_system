@@ -20,3 +20,7 @@ export class TopupDto {
   @Min(1)
   amount: number;
 }
+
+export class BalanceReturnDto {
+  balances: { [key: TopupDto['currency']]: TopupDto['amount'] };
+}
