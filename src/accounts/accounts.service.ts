@@ -18,11 +18,14 @@ export class AccountsService {
           select: { symbol: true },
         })
         .then(({ symbol }) => symbol);
-      console.log(symbol);
     } catch (error) {
-      throw new BadRequestException(
-        `the provided symbol (${currency}) isn't a valid symbol`,
-      );
+      if (error instanceof TypeError) {
+        throw new BadRequestException(
+          `the provided symbol (${currency}) isn't a valid symbol`,
+        );
+      } else {
+        console.error(error);
+      }
     }
     await prisma.user_currency_balances.upsert({
       where: { user_id_symbole: { user_id: user.id, symbol } },
