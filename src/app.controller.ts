@@ -1,5 +1,6 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
+import { FxRatesBody } from './app.dto';
 
 @Controller()
 export class AppController {
@@ -10,13 +11,13 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @Get('fx-rates')
-  fxRates() {
-    return 'fx-rates';
+  @Post('fx-rates')
+  async fxRates(@Body() body: FxRatesBody) {
+    return await this.appService.fxRates(body.fromCurrency, body.toCurrency);
   }
 
   @Post('fx-conversion')
-  fxConversion() {
-    return 'fx-conversion';
+  async fxConversion() {
+    return await this.appService.fxConversion();
   }
 }
