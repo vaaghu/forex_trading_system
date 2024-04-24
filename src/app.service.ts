@@ -64,6 +64,7 @@ export class AppService {
     toCurrency: FxConversion['toCurrency'],
     amount: FxConversion['amount'],
   ): Promise<FxConversionResponse> {
+    console.log(quote);
     const rateObj = quote[quoteId];
     if (!rateObj) throw new BadRequestException('invalid quoteId');
 
@@ -137,19 +138,8 @@ export class AppService {
             }),
           ),
         );
-        // data = {
-        //   'Realtime Currency Exchange Rate': {
-        //     '1. From_Currency Code': 'USD',
-        //     '2. From_Currency Name': 'United States Dollar',
-        //     '3. To_Currency Code': 'JPY',
-        //     '4. To_Currency Name': 'Japanese Yen',
-        //     '5. Exchange Rate': '154.92100000',
-        //     '6. Last Refreshed': '2024-04-24 13:11:32',
-        //     '7. Time Zone': 'UTC',
-        //     '8. Bid Price': '154.91740000',
-        //     '9. Ask Price': '154.92760000',
-        //   },
-        // };
+        console.log(data);
+
         data = data['Realtime Currency Exchange Rate'];
 
         if (!rates[fromCurrency]) {

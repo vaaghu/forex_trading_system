@@ -80,6 +80,8 @@ To seed the db
   npx prisma db seed
 ```
 
+got all the currency AlphabeticCode from this [git repo](https://github.com/datasets/currency-codes/blob/master/data/codes-all.csv)
+
 ## License
 
 Nest is [MIT licensed](LICENSE).
