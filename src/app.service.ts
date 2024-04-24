@@ -1,5 +1,12 @@
 import { HttpService } from '@nestjs/axios';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
+
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Request,
+} from '@nestjs/common';
 import { catchError, firstValueFrom } from 'rxjs';
 import {
   FxConversion,
@@ -22,12 +29,15 @@ const quote: {
     rate: number;
   };
 } = {};
-
 @Injectable()
 export class AppService {
-  constructor(private http: HttpService) {}
+  constructor(
+    private http: HttpService,
+    @Inject(REQUEST) private request: Request,
+  ) {}
 
   getHello(): string {
+    console.log(this.request['user']);
     return "Hello I'm Vaaghu";
   }
 
@@ -54,7 +64,10 @@ export class AppService {
     if (rateObj.expiry_at < new Date().getTime())
       throw new BadRequestException('quoteId expired');
 
-    const { id: user_id } = await prisma.users.findFirst();
+    const { id: user_id } = this.request['user'];
+    if (!user_id) throw new BadRequestException("user isn't existing");
+
+    // const { id: user_id } = await prisma.users.findFirst();
     const balance = await prisma.user_currency_balances.findUnique({
       where: {
         user_id_symbole: { user_id, symbol: fromCurrency },
