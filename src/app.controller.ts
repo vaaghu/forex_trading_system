@@ -15,7 +15,6 @@ export class AppController {
   @Get()
   @ApiAcceptedResponse({
     status: 200,
-    type: 'string',
     description: 'to check',
   })
   getHello(): string {
